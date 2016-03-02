@@ -11,14 +11,15 @@ class Book(object):
 
 
 def getDealOfTheDay():
-    """Check in Pack Pub site what is today's ebook deal.
+    """Check in Pack Pub site what today's ebook deal is.
     """
     r = requests.get(PACKT_PUB_URL)
     ebook = Book('Dummy ebook title', 'dummy img url', 'Dummy ebook description')
     if r.status_code == 200:
-        # TODO: actually parse the html and get the ebook info
         soup = BeautifulSoup(r.text, 'html.parser')
-        main_div = soup.find(id='deal-of-the-day')
+        #main_div = soup.find(id='deal-of-the-day')
+	content = soup.find('div', class_='dotd-title')
+	ebook.name = str(content.h2.string.strip())
     
     return ebook
 
