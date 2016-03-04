@@ -1,22 +1,43 @@
 import requests
+import twitter
 from bs4 import BeautifulSoup
+from decouple import config
 
 
 PACKT_PUB_URL='https://www.packtpub.com/packt/offers/free-learning'
 CLASS_TITLE_DIV = 'dotd-title'
 CLASS_DOTD_BOOK_SUMMARY = 'dotd-main-book-summary'
 
+class TwitterManager(object):
+    CONSUMER_KEY = config('CONSUMER_KEY')
+    CONSUMER_SECRET = config('CONSUMER_SECRET')
+    ACCESS_TOKEN_SECRET = config('ACCESS_TOKEN_SECRET')
+    ACCESS_TOKEN_KEY = config('ACCESS_TOKEN')
+
+    def __init__(self):
+        self.api = twitter.Api(consumer_key=self.CONSUMER_KEY,
+                       consumer_secret=self.CONSUMER_SECRET,
+                       access_token_key=self.ACCESS_TOKEN_KEY,
+                       access_token_secret=self.ACCESS_TOKEN_SECRET)
+
+    def post(self, book):
+        text = "'{}'. ({}) #PacktPub #DOTD".format(book.name, book.description, 140)
+        self.api.PostUpdate(text[:140])
+
+
 class Book(object):
-    def __init__(self, name, img, description):
+    def __init__(self, name, description, img_url=''):
         self.name = name
-        self.img = img
+        self.img_url = img_url
         self.description = description
 
 def getTitle(soup):
+    """Looks for the book title in the html parsed stored in 'soup' variable"""
     title_div = soup.find('div', class_=CLASS_TITLE_DIV)
     return title_div.h2.string.strip()
 
 def getDescription(soup):
+    """Looks for the book summary in the html parsed stored in 'soup' variable"""
     main_summary_div = soup.find(class_=CLASS_DOTD_BOOK_SUMMARY)
     # in the html page, the description items have no class or id, so I'll just look for divs with no class
     summary_div_list = main_summary_div.findAll('div', class_=lambda cssClass: cssClass == None)
@@ -26,12 +47,12 @@ def getDescription(soup):
 def getDealOfTheDay():
     """Check in Pack Pub site what today's ebook deal is.
     """
+    ebook = None
+
     r = requests.get(PACKT_PUB_URL)
-    ebook = Book('Dummy ebook title', 'dummy img url', 'Dummy ebook description')
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, 'html.parser')
-        ebook.name = getTitle(soup)
-        ebook.description = getDescription(soup)
+        ebook = Book(getTitle(soup), getDescription(soup))
 
     return ebook
 
@@ -42,7 +63,9 @@ if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
 
     if ebook:
-        print("Book of the day: {}".format(ebook.name))
-        print("Description: {}".format( ebook.description))
+        print('Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
+        print("posting on twitter...")
+        TwitterManager().post(ebook)
+        print('Done!')
     else:
-        print("Sorry! There has been an error getting the deal of the day. Try again later.")
+        print('Sorry! There has been an error getting the deal of the day. Try again later.')
