@@ -1,3 +1,4 @@
+from __future__ import print_function
 import requests
 import twitter
 import schedule
@@ -5,12 +6,13 @@ import time
 import sys
 from bs4 import BeautifulSoup
 from decouple import config
+from twitter.error import TwitterError
 
 
 PACKT_PUB_URL='https://www.packtpub.com/packt/offers/free-learning'
 CLASS_TITLE_DIV = 'dotd-title'
 CLASS_DOTD_BOOK_SUMMARY = 'dotd-main-book-summary'
-SEND_TWEET = False
+SEND_TWEETS = False
 
 class TwitterManager(object):
     CONSUMER_KEY = config('CONSUMER_KEY')
@@ -30,8 +32,8 @@ class TwitterManager(object):
         self.api.PostUpdate(text)
 
     def postDescription(self, book):
-        text = book.description
-        if len(text) > self.TWITTER_MAX_LENGTH:
+        text = book.description[:self.TWITTER_MAX_LENGTH]
+        if len(book.description) > self.TWITTER_MAX_LENGTH:
             text = text[:-3] + '...'
         self.api.PostUpdate(text)
 
@@ -70,24 +72,25 @@ def job():
     ebook = getDealOfTheDay()
 
     if ebook:
-        print(u'Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
+        print(u"Book of the day: {}\nDescription: {}".format(ebook.name, ebook.description))
 
         if SEND_TWEETS:
-            print("posting on twitter...")
-            twitter = TwitterManager()
-            twitter.post(ebook)
-            twitter.postDescription(ebook)
-            print('Done!')
+            try:
+                print("posting on twitter...")
+                twitter = TwitterManager()
+                twitter.post(ebook)
+                #twitter.postDescription(ebook)
+                print('Done!')
+            except TwitterError as error:
+                print('Error sending tweets: ', error.message)
     else:
         print('Sorry! There has been an error getting the deal of the day. Try again later.')
 
 
-SEND_TWEETS = False
-
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
     if len(sys.argv) > 1:
-        SEND_TWEET = sys.argv[1] == '--send-tweet'
+        SEND_TWEETS = sys.argv[1] == '--send-tweets'
 
     schedule.every(3).hours.do(job)
     # run first time
