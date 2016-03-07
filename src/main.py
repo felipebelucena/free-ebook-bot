@@ -1,5 +1,8 @@
 import requests
 import twitter
+import schedule
+import time
+import sys
 from bs4 import BeautifulSoup
 from decouple import config
 
@@ -7,12 +10,14 @@ from decouple import config
 PACKT_PUB_URL='https://www.packtpub.com/packt/offers/free-learning'
 CLASS_TITLE_DIV = 'dotd-title'
 CLASS_DOTD_BOOK_SUMMARY = 'dotd-main-book-summary'
+SEND_TWEET = False
 
 class TwitterManager(object):
     CONSUMER_KEY = config('CONSUMER_KEY')
     CONSUMER_SECRET = config('CONSUMER_SECRET')
     ACCESS_TOKEN_SECRET = config('ACCESS_TOKEN_SECRET')
     ACCESS_TOKEN_KEY = config('ACCESS_TOKEN')
+    TWITTER_MAX_LENGTH = 140
 
     def __init__(self):
         self.api = twitter.Api(consumer_key=self.CONSUMER_KEY,
@@ -21,9 +26,14 @@ class TwitterManager(object):
                        access_token_secret=self.ACCESS_TOKEN_SECRET)
 
     def post(self, book):
-        text = "'{}'. ({}) #PacktPub #DOTD".format(book.name, book.description, 140)
-        self.api.PostUpdate(text[:140])
+        text = u"#DOTD: {}. {} #PacktPub".format(book.name, PACKT_PUB_URL)
+        self.api.PostUpdate(text)
 
+    def postDescription(self, book):
+        text = book.description
+        if len(text) > self.TWITTER_MAX_LENGTH:
+            text = text[:-3] + '...'
+        self.api.PostUpdate(text)
 
 class Book(object):
     def __init__(self, name, description, img_url=''):
@@ -56,16 +66,34 @@ def getDealOfTheDay():
 
     return ebook
 
-
-if __name__ == '__main__':
+def job():
     ebook = getDealOfTheDay()
 
-    print("### Free Ebook Bot tool ###")
-
     if ebook:
-        print('Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
-        print("posting on twitter...")
-        TwitterManager().post(ebook)
-        print('Done!')
+        print(u'Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
+
+        if SEND_TWEETS:
+            print("posting on twitter...")
+            twitter = TwitterManager()
+            twitter.post(ebook)
+            twitter.postDescription(ebook)
+            print('Done!')
     else:
         print('Sorry! There has been an error getting the deal of the day. Try again later.')
+
+
+SEND_TWEETS = False
+
+if __name__ == '__main__':
+    print("### Free Ebook Bot tool ###")
+    if len(sys.argv) > 1:
+        SEND_TWEET = syis.argv[1] == '--send-tweet':
+
+    schedule.every(3).hours.do(job)
+    # run first time
+    job()
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
