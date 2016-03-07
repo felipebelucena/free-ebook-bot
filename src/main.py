@@ -87,7 +87,7 @@ SEND_TWEETS = False
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
     if len(sys.argv) > 1:
-        SEND_TWEET = syis.argv[1] == '--send-tweet':
+        SEND_TWEET = sys.argv[1] == '--send-tweet'
 
     schedule.every(3).hours.do(job)
     # run first time
