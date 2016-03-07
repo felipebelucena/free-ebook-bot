@@ -1,13 +1,12 @@
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
+from bs4 import BeautifulSoup
+from decouple import config
+from twitter.error import TwitterError
 import requests
 import twitter
 import schedule
 import time
 import sys
-from bs4 import BeautifulSoup
-from decouple import config
-from twitter.error import TwitterError
 
 
 PACKT_PUB_URL='https://www.packtpub.com/packt/offers/free-learning'
@@ -74,7 +73,7 @@ def job():
 
     if ebook:
         print('Book of the day: ', unicode(ebook.name))
-        print('Description: ', unicode(ebook.description))
+        #print('Description: ', unicode(ebook.description))
 
         if SEND_TWEETS:
             try:
