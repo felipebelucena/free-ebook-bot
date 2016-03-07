@@ -73,7 +73,8 @@ def job():
     ebook = getDealOfTheDay()
 
     if ebook:
-        print('Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
+        print('Book of the day: ', unicode(ebook.name))
+        print('Description: ', unicode(ebook.description))
 
         if SEND_TWEETS:
             try:
