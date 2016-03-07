@@ -1,1 +1,1 @@
-worker: python main.py --send-tweets
+worker: python src/main.py --send-tweets
