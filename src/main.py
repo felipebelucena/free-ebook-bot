@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import unicode_literals
 import requests
 import twitter
 import schedule
@@ -28,7 +29,7 @@ class TwitterManager(object):
                        access_token_secret=self.ACCESS_TOKEN_SECRET)
 
     def post(self, book):
-        text = u"#DOTD: {}. {} #PacktPub".format(book.name, PACKT_PUB_URL)
+        text = "#DOTD: {}. {} #PacktPub".format(book.name, PACKT_PUB_URL)
         self.api.PostUpdate(text)
 
     def postDescription(self, book):
@@ -72,7 +73,7 @@ def job():
     ebook = getDealOfTheDay()
 
     if ebook:
-        print(u"Book of the day: {}\nDescription: {}".format(ebook.name, ebook.description))
+        print('Book of the day: {}\nDescription: {}'.format(ebook.name, ebook.description))
 
         if SEND_TWEETS:
             try:
