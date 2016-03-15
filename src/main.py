@@ -34,6 +34,7 @@ class TwitterManager(object):
             text = text[:-3] + '...'
         self.api.PostUpdate(text)
 
+
 class Book(object):
     def __init__(self, name, description, img_url=''):
         self.name = name
@@ -85,8 +86,7 @@ def get_dotd():
 
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
-    import platform
-    print('py version: ', platform.python_version())
+
     if len(sys.argv) > 1:
         NO_TWEETS = sys.argv[1] == '--no-tweet'
 
