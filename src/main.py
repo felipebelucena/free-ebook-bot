@@ -47,7 +47,7 @@ class Book(object):
 def get_title(soup):
     """Looks for the book title in the html parsed stored in 'soup' variable"""
     title_div = soup.find('div', class_=CLASS_TITLE_DIV)
-    return unicode(title_div.h2.string.strip())
+    return title_div.h2.string.strip().encode('utf-8')
 
 def get_description(soup):
     """Looks for the book summary in the html parsed stored in 'soup' variable"""
@@ -55,7 +55,7 @@ def get_description(soup):
     # in the html page, the description items have no class or id, so I'll just look for divs with no class
     summary_div_list = main_summary_div.findAll('div', class_=lambda cssClass: cssClass == None)
     # todo: parse the <ul> tag in the second summary div and add to the description
-    return unicode(summary_div_list[0].string.strip())
+    return summary_div_list[0].string.strip().encode('utf-8')
 
 def get_dotd():
     """Check in Pack Pub site what the 'deal of the day (dotd)' is.
@@ -85,6 +85,7 @@ def get_dotd():
 
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
+    print('python version: ', sys.version)
     if len(sys.argv) > 1:
         NO_TWEETS = sys.argv[1] == '--no-tweet'
 
