@@ -85,7 +85,8 @@ def get_dotd():
 
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
-    print('python version: ', sys.version)
+    import platform
+    print('py version: ', platform.python_version())
     if len(sys.argv) > 1:
         NO_TWEETS = sys.argv[1] == '--no-tweet'
 
