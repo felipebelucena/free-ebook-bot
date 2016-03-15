@@ -30,7 +30,11 @@ source .free-ebook-bot/bin/activate
 pip install -r requirements.txt
 cp contrib/env-sample src/.env
 # edit .env file with your AccessToken/Secret and ConsumerKey/Secret info
-python src/main.py --send-tweets
+python src/main.py
 ```
 
-If you don't want to send tweets, run the app without the `--send-tweets` arg.
+If you don't want to post on twitter, run the app with `--no-tweet` arg.
+
+```console
+python src/main.py --no-tweet
+```

@@ -1,18 +1,15 @@
 from __future__ import print_function, unicode_literals
 from bs4 import BeautifulSoup
 from decouple import config
-from twitter.error import TwitterError
-import requests
 import twitter
-import schedule
-import time
+import requests
 import sys
 
 
 PACKT_PUB_URL='https://www.packtpub.com/packt/offers/free-learning'
 CLASS_TITLE_DIV = 'dotd-title'
 CLASS_DOTD_BOOK_SUMMARY = 'dotd-main-book-summary'
-SEND_TWEETS = False
+NO_TWEETS = False
 
 class TwitterManager(object):
     CONSUMER_KEY = config('CONSUMER_KEY')
@@ -28,10 +25,10 @@ class TwitterManager(object):
                        access_token_secret=self.ACCESS_TOKEN_SECRET)
 
     def post(self, book):
-        text = "#DOTD: {}. {} #PacktPub".format(book.name, PACKT_PUB_URL)
+        text = "#DOTD: {}. {} #PacktPub".format(book, PACKT_PUB_URL)
         self.api.PostUpdate(text)
 
-    def postDescription(self, book):
+    def post_description(self, book):
         text = book.description[:self.TWITTER_MAX_LENGTH]
         if len(book.description) > self.TWITTER_MAX_LENGTH:
             text = text[:-3] + '...'
@@ -43,47 +40,45 @@ class Book(object):
         self.img_url = img_url
         self.description = description
 
-def getTitle(soup):
+    def __str__(self):
+        return self.name
+
+
+def get_title(soup):
     """Looks for the book title in the html parsed stored in 'soup' variable"""
     title_div = soup.find('div', class_=CLASS_TITLE_DIV)
-    return title_div.h2.string.strip()
+    return unicode(title_div.h2.string.strip())
 
-def getDescription(soup):
+def get_description(soup):
     """Looks for the book summary in the html parsed stored in 'soup' variable"""
     main_summary_div = soup.find(class_=CLASS_DOTD_BOOK_SUMMARY)
     # in the html page, the description items have no class or id, so I'll just look for divs with no class
     summary_div_list = main_summary_div.findAll('div', class_=lambda cssClass: cssClass == None)
     # todo: parse the <ul> tag in the second summary div and add to the description
-    return summary_div_list[0].string.strip()
+    return unicode(summary_div_list[0].string.strip())
 
-def getDealOfTheDay():
-    """Check in Pack Pub site what today's ebook deal is.
+def get_dotd():
+    """Check in Pack Pub site what the 'deal of the day (dotd)' is.
     """
-    ebook = None
-
     r = requests.get(PACKT_PUB_URL)
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, 'html.parser')
-        ebook = Book(getTitle(soup), getDescription(soup))
+        ebook = Book(get_title(soup), get_description(soup))
 
-    return ebook
+        print('Book of the day: ', ebook)
+        print('Description: ', ebook.description)
 
-def job():
-    ebook = getDealOfTheDay()
-
-    if ebook:
-        print('Book of the day: ', unicode(ebook.name))
-        #print('Description: ', unicode(ebook.description))
-
-        if SEND_TWEETS:
-            try:
-                print("posting on twitter...")
-                twitter = TwitterManager()
-                twitter.post(ebook)
-                #twitter.postDescription(ebook)
-                print('Done!')
-            except TwitterError as error:
-                print('Error sending tweets: ', error.message)
+        if NO_TWEETS:
+            return
+        try:
+            print("posting on twitter...")
+            tm = TwitterManager()
+            tm.post(ebook)
+            print('Done!')
+        except twitter.error.TwitterError as error:
+            print('Error sending tweet:')
+            for msg in error.message:
+                print('[{}] - {}'.format(msg['code'],  msg['message']))
     else:
         print('Sorry! There has been an error getting the deal of the day. Try again later.')
 
@@ -91,13 +86,6 @@ def job():
 if __name__ == '__main__':
     print("### Free Ebook Bot tool ###")
     if len(sys.argv) > 1:
-        SEND_TWEETS = sys.argv[1] == '--send-tweets'
+        NO_TWEETS = sys.argv[1] == '--no-tweet'
 
-    schedule.every(3).hours.do(job)
-    # run first time
-    job()
-
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
+    get_dotd()
