@@ -36,7 +36,7 @@ class TwitterManager(object):
 
 
 class Book(object):
-    def __init__(self, name, description, img_url=''):
+    def __init__(self, name, description='', img_url=''):
         self.name = name
         self.img_url = img_url
         self.description = description
@@ -65,7 +65,7 @@ def get_dotd():
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, 'html.parser')
         #ebook = Book(get_title(soup), get_description(soup))
-
+        ebook = Book(get_title(soup))
         print('Book of the day: ', ebook)
         #print('Description: ', ebook.description)
 
