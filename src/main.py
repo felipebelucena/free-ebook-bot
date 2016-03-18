@@ -64,10 +64,10 @@ def get_dotd():
     r = requests.get(PACKT_PUB_URL)
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, 'html.parser')
-        ebook = Book(get_title(soup), get_description(soup))
+        #ebook = Book(get_title(soup), get_description(soup))
 
         print('Book of the day: ', ebook)
-        print('Description: ', ebook.description)
+        #print('Description: ', ebook.description)
 
         if NO_TWEETS:
             return
