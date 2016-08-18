@@ -61,7 +61,7 @@ def get_description(soup):
 def get_dotd():
     """Check in Pack Pub site what the 'deal of the day (dotd)' is.
     """
-    r = requests.get(PACKT_PUB_URL)
+    r = requests.get(PACKT_PUB_URL, headers={'User-Agent': 'Mozilla/5.0'})
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, 'html.parser')
         #ebook = Book(get_title(soup), get_description(soup))
